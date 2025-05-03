@@ -1,2 +1,99 @@
 @import "tailwindcss";
 
+/* Editor.js Drag and Drop styles */
+.ce-block--selected .ce-block__content {
+  background: #e9e9e9;
+}
+
+
+.dark .ce-block--selected .ce-block__content {
+  background: #2d2d2d;
+}
+
+.ce-block--dragging {
+  opacity: 0.7;
+}
+
+/* Nested list styles */
+.cdx-nested-list {
+  padding-left: 0;
+  margin: 0;
+}
+
+.cdx-nested-list__item {
+  list-style: none;
+  margin-left: 1.5em;
+  position: relative;
+}
+
+.cdx-nested-list--ordered {
+  counter-reset: item;
+}
+
+.cdx-nested-list--ordered .cdx-nested-list__item:before {
+  counter-increment: item;
+  content: counters(item, ".") ". ";
+  position: absolute;
+  left: -2em;
+  width: 1.5em;
+  text-align: right;
+}
+
+.cdx-nested-list--unordered .cdx-nested-list__item:before {
+  content: "•";
+  position: absolute;
+  left: -1em;
+}
+
+/* Column layout styles */
+.ce-block__content {
+  position: relative;
+  max-width: 90% !important;
+  margin: 0 auto;
+}
+
+.cdx-block {
+  padding: 0.7em 0;
+}
+
+/* Editor.js toolbar positioning fixes */
+.ce-toolbar__content,
+.ce-block__content {
+  max-width: 90% !important;
+  margin: 0 auto;
+}
+
+h1.ce-header {
+    @apply text-3xl font-bold
+}
+
+h2.ce-header {
+    @apply text-2xl font-semibold
+}
+
+h3.ce-header {
+    @apply text-xl font-semibold
+}
+div.ce-paragraph {
+    @apply text-lg
+}
+
+a.ce-paragraph {
+    @apply bg-transparent
+}
+
+.link-tool__content{
+  background-color: transparent;
+}
+
+
+.ce-toolbar__plus {
+  left: -5px !important;
+}
+
+.ce-toolbar__settings-btn {
+  width: 24px;
+  height: 24px;
+  margin-right: 6px;
+}
+

@@ -7,6 +7,7 @@ import DatePicker from './DatePicker';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { startOfDay, isSameDay } from 'date-fns';
+import ThemeSwitch from './ThemeSwitch';
 
 export default function NotesGrid({ notes, onNewNote, onEditNote, onDeleteNote }) {
   const [sortedNotes, setSortedNotes] = useState([]);
@@ -47,6 +48,9 @@ export default function NotesGrid({ notes, onNewNote, onEditNote, onDeleteNote }
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
           <h1 className="text-3xl sm:text-4xl font-serif italic">Notes</h1>
+          <div className={`flex items-center justify-between space-x-4`}>
+
+          <ThemeSwitch /> {/* Added ThemeSwitch component */}
           <button
             onClick={onNewNote}
             className={`group flex items-center justify-center gap-3 px-6 py-3 rounded-full ${
@@ -58,6 +62,7 @@ export default function NotesGrid({ notes, onNewNote, onEditNote, onDeleteNote }
             <FiPlus size={20} className="transition-transform group-hover:rotate-90 duration-300" />
             <span className="font-medium">Add Note</span>
           </button>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 items-start">

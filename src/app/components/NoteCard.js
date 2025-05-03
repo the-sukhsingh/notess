@@ -10,7 +10,7 @@ export default function NoteCard({ note, onEdit, onDelete }) {
 
   const getPreviewText = () => {
     if (!note.content?.blocks) return '';
-    const textBlocks = note.content.blocks.filter(block => block.type === 'paragraph');
+    const textBlocks = note.content.blocks.filter(block => block.type === 'header' || block.type === 'paragraph');
     return textBlocks.length > 0 ? textBlocks[0].data.text : '';
   };
 
