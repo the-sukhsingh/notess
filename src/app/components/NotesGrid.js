@@ -13,7 +13,26 @@ export default function NotesGrid({ notes, onNewNote, onEditNote, onDeleteNote }
   const [sortedNotes, setSortedNotes] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
+  const [isOffline, setIsOffline] = useState(false);
   const { theme } = useTheme();
+
+  // Check online status
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    // Set initial state
+    setIsOffline(!navigator.onLine);
+
+    // Add event listeners
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Get unique dates from notes
   const uniqueDates = [...new Set(notes.map(note => {
@@ -46,22 +65,22 @@ export default function NotesGrid({ notes, onNewNote, onEditNote, onDeleteNote }
   return (
     <div className={`max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       <div className="space-y-6">
+
         <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
           <h1 className="text-3xl sm:text-4xl font-serif italic">Notes</h1>
           <div className={`flex items-center justify-between space-x-4`}>
-
-          <ThemeSwitch /> {/* Added ThemeSwitch component */}
-          <button
-            onClick={onNewNote}
-            className={`group flex items-center justify-center gap-3 px-6 py-3 rounded-full ${
-              theme === 'dark' 
-                ? 'bg-gray-800 hover:bg-gray-700 text-gray-100' 
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-            } transition-all duration-300 ease-in-out shadow-sm hover:shadow`}
-          >
-            <FiPlus size={20} className="transition-transform group-hover:rotate-90 duration-300" />
-            <span className="font-medium">Add Note</span>
-          </button>
+            <ThemeSwitch />
+            <button
+              onClick={onNewNote}
+              className={`group flex items-center justify-center gap-3 px-6 py-3 rounded-full ${
+                theme === 'dark' 
+                  ? 'bg-gray-800 hover:bg-gray-700 text-gray-100' 
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+              } transition-all duration-300 ease-in-out shadow-sm hover:shadow`}
+            >
+              <FiPlus size={20} className="transition-transform group-hover:rotate-90 duration-300" />
+              <span className="font-medium">Add Note</span>
+            </button>
           </div>
         </div>
 

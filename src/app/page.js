@@ -13,31 +13,39 @@ export default function Home() {
   const [notes, setNotes] = useState([]);
   const [currentNote, setCurrentNote] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { theme } = useTheme();
-  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
+  // Load notes on component mount
   useEffect(() => {
     const loadNotes = async () => {
-      const savedNotes = await getAllNotes();
-      setNotes(savedNotes || []);
+      try {
+        setIsLoading(true);
+        const savedNotes = await getAllNotes();
+        setNotes(savedNotes || []);
+      } catch (error) {
+        console.error('Error loading notes:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
+
+    // Load notes immediately
     loadNotes();
-  }, []);
 
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // Register for background sync when the component mounts
-    registerSync();
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+    // Set up service worker and sync
+    const setupServiceWorker = async () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js');
+          await registerSync();
+        } catch (error) {
+          console.error('Service worker registration failed:', error);
+        }
+      }
     };
+
+    setupServiceWorker();
   }, []);
 
   const handleEditorChange = async (data) => {
@@ -49,29 +57,42 @@ export default function Home() {
 
     if (!hasContent) return;
 
-    const updatedNote = {
-      ...currentNote,
-      title: data.title || 'New Note',
-      content: data
-    };
+    try {
+      const updatedNote = {
+        ...currentNote,
+        title: data.title || 'New Note',
+        content: data
+      };
 
-    await saveNote(updatedNote);
-    const allNotes = await getAllNotes();
-    setNotes(allNotes);
+      await saveNote(updatedNote);
+      const allNotes = await getAllNotes();
+      setNotes(allNotes);
+    } catch (error) {
+      console.error('Error saving note:', error);
+      // The note will still be saved locally due to IndexedDB
+    }
   };
 
   const handleNewNote = async () => {
-    const newNote = {
-      id: uuidv4(),
-      title: 'New Note',
-      content: { blocks: [] },
-      createdAt: new Date().toISOString(),
-    };
-    await saveNote(newNote);
-    const allNotes = await getAllNotes();
-    setNotes(allNotes);
-    setCurrentNote(newNote);
-    setIsEditing(true);
+    try {
+      const newNote = {
+        id: uuidv4(),
+        title: 'New Note',
+        content: { blocks: [] },
+        createdAt: new Date().toISOString(),
+      };
+      await saveNote(newNote);
+      const allNotes = await getAllNotes();
+      setNotes(allNotes);
+      setCurrentNote(newNote);
+      setIsEditing(true);
+    } catch (error) {
+      console.error('Error creating new note:', error);
+      // Still create the note in UI as it will be saved locally
+      setNotes(prev => [...prev, newNote]);
+      setCurrentNote(newNote);
+      setIsEditing(true);
+    }
   };
 
   const handleEditNote = (note) => {
@@ -80,18 +101,38 @@ export default function Home() {
   };
 
   const handleDeleteNote = async (noteId) => {
-    await deleteNote(noteId);
-    const allNotes = await getAllNotes();
-    setNotes(allNotes);
-    if (currentNote?.id === noteId) {
-      setCurrentNote(null);
-      setIsEditing(false);
+    try {
+      await deleteNote(noteId);
+      const allNotes = await getAllNotes();
+      setNotes(allNotes);
+      if (currentNote?.id === noteId) {
+        setCurrentNote(null);
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      // Remove from UI even if network error as it's deleted locally
+      setNotes(prev => prev.filter(note => note.id !== noteId));
+      if (currentNote?.id === noteId) {
+        setCurrentNote(null);
+        setIsEditing(false);
+      }
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} flex items-center justify-center`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-current mx-auto mb-4"></div>
+          <p>Loading your notes...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <main className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} pb-16`}>
-      
       {isEditing ? (
         <div className="relative">
           <div className="fixed top-0 left-0 right-0 z-40 backdrop-blur-sm">
@@ -115,15 +156,12 @@ export default function Home() {
           />
         </div>
       ) : (
-        <>
-          <NotesGrid
-            notes={notes}
-            onNewNote={handleNewNote}
-            onEditNote={handleEditNote}
-            onDeleteNote={handleDeleteNote}
-          />
-          
-        </>
+        <NotesGrid
+          notes={notes}
+          onNewNote={handleNewNote}
+          onEditNote={handleEditNote}
+          onDeleteNote={handleDeleteNote}
+        />
       )}
     </main>
   );

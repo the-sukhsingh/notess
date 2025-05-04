@@ -1,8 +1,25 @@
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+// import OfflineIndicator from "./components/OfflineIndicator";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
+
+// Add service worker registration
+const registerServiceWorker = () => {
+  if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(
+        registration => {
+          console.log('ServiceWorker registration successful');
+        },
+        err => {
+          console.log('ServiceWorker registration failed: ', err);
+        }
+      );
+    });
+  }
+};
 
 export const metadata = {
   title: "Notess - Your Modern Note Taking App",
@@ -26,6 +43,11 @@ export const viewport = {
 };
 
 export default function RootLayout({ children }) {
+  // Register service worker on component mount
+  if (typeof window !== 'undefined') {
+    registerServiceWorker();
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -37,8 +59,9 @@ export default function RootLayout({ children }) {
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           {children}
+          {/* <OfflineIndicator /> */}
         </ThemeProvider>
       </body>
     </html>
